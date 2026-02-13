@@ -1,44 +1,46 @@
-from db.database import async_engine, session_factory, Base
-from enums.enums import Statuses, Sender
+from bot.db.database import Base
+from bot.enums.enums import Statuses, Sender
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Integer, MetaData, ForeignKey, Column, text, BigInteger
+from sqlalchemy import ForeignKey, Integer, text, ARRAY
 from typing import Annotated
 from datetime import datetime
-from enum import Enum
 
 intpk = Annotated[int, mapped_column(primary_key=True)]
-create_at = Annotated[datetime, mapped_column(server_default=text("TIMEZOE('utc', now())"))]
+create_at = Annotated[datetime, mapped_column(server_default=text("TIMEZONE('utc', now())"))]
 
 class UsersORM(Base):
     __tablename__ = "users"
     id : Mapped[intpk]
-    telegram_id : Mapped[BigInteger] = mapped_column(unique=True)
+    telegram_id : Mapped[int] = mapped_column(unique=True)
     username : Mapped[str]
     created_at : Mapped[create_at]
+    isOnTicket : Mapped[bool] = mapped_column(server_default=text('false'))
     
 class OperatorsORM(Base):
     __tablename__ = "operators"
     id : Mapped[intpk]
-    telegram_id : Mapped[BigInteger] = mapped_column(unique=True)
-    tickets_id : Mapped[list[int] | None]
+    telegram_id : Mapped[int] = mapped_column(unique=True)
+    tickets_id : Mapped[list[int] | None] = mapped_column(ARRAY(Integer))
 
 class TicketsORM(Base):
     __tablename__ = "tickets"
     id : Mapped[intpk]
-    user_id : Mapped[BigInteger] = mapped_column(ForeignKey("users.telegram_id", ondelete="CASCADE"))
-    operator_id : Mapped[BigInteger | None] = mapped_column(ForeignKey("operators.telegram_id", ondelete="CASCADE"))
+    user_id : Mapped[int] = mapped_column(ForeignKey("users.telegram_id", ondelete="CASCADE"))
+    operator_id : Mapped[int | None] = mapped_column(ForeignKey("operators.telegram_id", ondelete="CASCADE"))
     status : Mapped[Statuses]
     created_at : Mapped[create_at]
-    messages : Mapped[list["MessagesORM"] | None] = relationship(
-        back_populates= "ticket"
+    messages: Mapped[list["MessagesORM"]] = relationship(
+        "MessagesORM",
+        back_populates="ticket"
     )
         
 class MessagesORM(Base):
     __tablename__ = "messages"
     id : Mapped[intpk]
+    ticket_id: Mapped[int] = mapped_column(ForeignKey("tickets.id", ondelete="CASCADE"))
+    sender : Mapped[Sender]
+    text : Mapped[str]
     ticket : Mapped["TicketsORM"] = relationship(
         back_populates= "messages"
     )
-    sender : Mapped[Sender]
-    text : Mapped[str]
