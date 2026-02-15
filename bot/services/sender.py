@@ -19,7 +19,7 @@ async def send_message_with_id(text : str, sender : Sender, ticket_id : int | No
             logger.warning(f'Тикет {ticket.id} уже закрыт')
             return 'Тикет уже закрыт!'
         await bot.send_message(chat_id= ticket.user_id, text= f'От ассистента поступил ответ: {text}', parse_mode=None)
-        await insert_message(ticket_id=ticket_id, text=text, sender= Sender.user)
+        await insert_message(ticket_id=ticket_id, text=text, sender= Sender.operator)
         logger.info(f'Сообщение от {sender.name} было отправлено в тикет {ticket_id}')
         return 'Сообщение отправлено пользователю!'
     else:
@@ -32,7 +32,7 @@ async def send_message_with_id(text : str, sender : Sender, ticket_id : int | No
         return 'Сообщение отправлено, подождите пока ктото возьмет ваш тикет!'
     
 async def close_ticket_sender(ticket_id : int) -> str:
-    await change_ticket_status(ticket_id=ticket_id, state= False)
+    await change_ticket_status(ticket_id=ticket_id, state= Statuses.closed)
     user = await get_user_by_ticket(ticket_id=ticket_id)
-    await change_user_state(telegram_id=user.id, state= False)
-    await bot.send_message(chat_id=user.id, text='Ваш тикет был закрыт оператором!')
+    await change_user_state(telegram_id=user.telegram_id, state= False)
+    await bot.send_message(chat_id=user.telegram_id, text='Ваш тикет был закрыт оператором!')

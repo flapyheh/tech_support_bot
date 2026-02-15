@@ -75,7 +75,8 @@ async def process_ticket_answer(message: Message):
     
     ticket_id = args[1]
     try:
-        await close_ticket_sender(ticket_id=int(ticket_id))
+        result = await close_ticket_sender(ticket_id=int(ticket_id))
+        await message.answer(result)
     except Exception as e:
         logger.warning(f'Ошибка при обработке тикета {ticket_id}: {e}')
         await message.reply("Произошла ошибка при обработке вашего сообщения.")
@@ -92,7 +93,8 @@ async def process_ticket_answer(message: Message):
     ticket_id = args[1]
     try:
         messages = await get_all_msg_from_ticket(ticket_id=int(ticket_id))
-        await message.answer(f'Отправитель {msg.sender.name}. Текст: {msg.text}\n' for msg in messages)
+        text = ''.join(f'Отправитель {msg.sender.name}. Текст: {msg.text}\n' for msg in messages)
+        await message.answer(text)
     except Exception as e:
         logger.warning(f'Ошибка при обработке тикета {ticket_id}: {e}')
         await message.reply("Произошла ошибка при обработке вашего сообщения.")

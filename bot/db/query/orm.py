@@ -4,6 +4,7 @@ from bot.db.database import async_engine, session_factory, Base
 from bot.enums.enums import Sender, Statuses
 
 from sqlalchemy import select, and_
+from sqlalchemy.orm import joinedload
 import logging
 
 logger = logging.getLogger(__name__)
@@ -118,12 +119,14 @@ async def get_user_by_ticket(ticket_id : int) -> UsersORM | None:
         ticket = await session.get(TicketsORM, ticket_id)
         if ticket is None:
             return None
-        user = await session.get(UsersORM, ticket.user_id)
+        result = await session.execute(select(UsersORM).where(UsersORM.telegram_id == ticket.user_id))
+        user = result.scalars().first()
         return user
 
 async def get_all_msg_from_ticket(ticket_id : int) -> list[MessagesORM] | None:
     async with session_factory() as session:
-        ticket = await session.get(TicketsORM, ticket_id)
+        result = await session.execute(select(TicketsORM).where(TicketsORM.id == ticket_id).options(joinedload(TicketsORM.messages)))
+        ticket = result.scalars().first()
         if ticket is None:
             return None
         return ticket.messages
