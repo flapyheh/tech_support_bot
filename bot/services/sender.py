@@ -27,7 +27,7 @@ async def send_message_with_id(text : str, sender : Sender, ticket_id : int | No
         await insert_message(ticket_id=ticket.id, text=text, sender= Sender.user)
         logger.info(f'Сообщение от {sender.name} было отправлено на тикет {ticket.id}')
         if ticket.operator_id is not None:
-            await bot.send_message(chat_id= ticket.operator_id, text= f'От пользователя на тикет {ticket_id} поступило сообщение: {text}')
+            await bot.send_message(chat_id= ticket.operator_id, text= f'От пользователя на тикет {ticket.id} поступило сообщение: {text}')
             return 'Сообщение отправлено оператору!'
         return 'Сообщение отправлено, подождите пока ктото возьмет ваш тикет!'
     
@@ -36,3 +36,4 @@ async def close_ticket_sender(ticket_id : int) -> str:
     user = await get_user_by_ticket(ticket_id=ticket_id)
     await change_user_state(telegram_id=user.telegram_id, state= False)
     await bot.send_message(chat_id=user.telegram_id, text='Ваш тикет был закрыт оператором!')
+    return 'Тикет закрыт'

@@ -57,6 +57,12 @@ async def operator_took_ticket(operator_id : int, ticket_id : int):
                 return('Тикет уже под рассмотром')
             else:
                 ticket.operator_id = operator_id
+                result = await session.execute(select(OperatorsORM).where(OperatorsORM.telegram_id == operator_id))
+                operator = result.scalars().first()
+                if operator.tickets_id is None:
+                    operator.tickets_id = [ticket_id]
+                else:
+                    operator.tickets_id.append(ticket_id)
                 await session.commit()
                 return(f'Вы взяли тикет с id {ticket_id}')
         else:
