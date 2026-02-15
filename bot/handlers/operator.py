@@ -1,16 +1,22 @@
 import logging
 import shlex
 from aiogram import Router
-from aiogram.filters import Command
+from aiogram.filters import Command, CommandStart
 from aiogram.types import Message
 
 from bot.enums.enums import Sender
 from bot.lexicon.lexicon import RU
 from bot.services.sender import send_message_with_id
-from bot.db.query.orm import operator_took_ticket
+from bot.db.query.orm import operator_took_ticket, get_all_opened_tickets
+from bot.keyboards.menu import set_main_menu
 
 logger = logging.getLogger(__name__)
 operator_router = Router()
+
+@operator_router.message(CommandStart())
+async def process_ticket_answer(message: Message):
+    await message.reply(RU['start_operator'])
+    await set_main_menu()
 
 @operator_router.message(Command('ticket'))
 async def process_ticket_answer(message: Message):
@@ -43,6 +49,16 @@ async def process_ticket_answer(message: Message):
     ticket_id = args[1]
     result = await operator_took_ticket(operator_id= message.from_user.id, ticket_id= ticket_id)
     await message.reply(result)
+
+@operator_router.message(Command('tickets'))
+async def process_ticket_answer(message: Message):
+    logger.info('Зашли в хэндлер tickets')
+    tickets = await get_all_opened_tickets()
+    ticket_ids = []
+    for ticket in tickets:
+        ticket_ids.append(ticket.id)
+    text = '\n'.join(f"{i+1}. {ticket_id}" for i, ticket_id in enumerate(ticket_ids))
+    await message.answer(f'Все тикеты которые свободны на данный момент:\n{text}')
     
 @operator_router.message()
 async def process_ticket_answer(message: Message):

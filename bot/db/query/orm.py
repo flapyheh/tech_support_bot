@@ -97,3 +97,9 @@ async def get_user(telegram_id : int) -> UsersORM | None:
         user = result.scalars().first()
         logger.info('Получили пользователя')
         return(user)
+
+async def get_all_opened_tickets() -> list[TicketsORM] | None:
+    async with session_factory() as session:
+        result = await session.execute(select(TicketsORM).where(TicketsORM.status == Statuses.opened))
+        tickets = result.scalars().all()
+        return(tickets)
