@@ -1,5 +1,6 @@
-from aiogram import Bot
 from aiogram.types import BotCommand
+from aiogram.types.bot_command_scope_all_private_chats import BotCommandScopeAllPrivateChats
+
 from bot.bot_module import bot
 
 async def set_main_menu():
@@ -12,5 +13,5 @@ async def set_main_menu():
                 description='Посмотреть все свободные тикеты')
         ]
 
-    await bot.delete_my_commands()
-    await bot.set_my_commands(main_menu_commands)
+    await bot.delete_my_commands(scope=BotCommandScopeAllPrivateChats())
+    await bot.set_my_commands(main_menu_commands, scope=BotCommandScopeAllPrivateChats())
