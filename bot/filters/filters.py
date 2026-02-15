@@ -21,4 +21,6 @@ class UserFilter(BaseFilter):
 class TicketFilter(BaseFilter):
     async def __call__(self, message : Message):
         user = await get_user(message.from_user.id)
+        if user is None:
+            return False
         return user.isOnTicket

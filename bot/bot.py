@@ -1,9 +1,10 @@
 import logging
 
-from aiogram import Dispatcher
+from aiogram import Dispatcher, F
 from aiogram.fsm.storage.memory import MemoryStorage
-from bot.handlers.user import user_router
+from bot.filters.filters import OperatorFilter
 from bot.handlers.operator import operator_router
+from bot.handlers.user import user_router
 from bot.middlewares.Throttling import ThrottlingMiddleware
 from bot.middlewares.OperatorMiddleware import OperatorMiddleware
 from bot.config.config import settings
@@ -33,7 +34,7 @@ async def main() -> None:
     # Подключаем миддлвари в нужном порядке
     logger.info("Including middlewares...")
     dp.update.middleware(ThrottlingMiddleware())
-    operator_router.message.outer_middleware(OperatorMiddleware())
+    operator_router.message.filter(OperatorFilter())
 
     # Запускаем поллинг
     try:

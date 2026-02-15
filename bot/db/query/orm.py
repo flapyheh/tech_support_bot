@@ -15,15 +15,17 @@ async def create_tables() -> None:
         
 async def insert_user(username : str, telegram_id : int) -> None:
     async with session_factory() as session:
-        new_user = UsersORM(username = username, telegram_id = telegram_id)
+        new_user = UsersORM(username = username, telegram_id = telegram_id, isOnTicket = False)
         session.add(new_user)
-        await session.refresh(new_user)
         await session.commit()
         logger.info(f'Пользователь {telegram_id} зашел в бота')
         
 async def change_user_state(telegram_id : int, state : bool) -> None:
     async with session_factory() as session:
-        user = await session.get(UsersORM, telegram_id)
+        user = await session.execute(
+            select(UsersORM).where(UsersORM.telegram_id == telegram_id)
+        )
+        user = user.scalars().first()
         user.isOnTicket = state
         await session.commit()
         logger.info(f'Пользователь {telegram_id} поменял состояние на {state}')
@@ -55,6 +57,7 @@ async def operator_took_ticket(operator_id : int, ticket_id : int):
             else:
                 ticket.operator_id = operator_id
                 await session.commit()
+                return(f'Вы взяли тикет с id {ticket_id}')
         else:
             logger.warning('Оператор ввел неправильный id тикета')
             return('Такого тикета не существует!')
@@ -78,8 +81,8 @@ async def insert_message(ticket_id : int, text : str, sender : Sender) -> None:
         ticket = await session.get(TicketsORM, ticket_id)
         message = MessagesORM(ticket= ticket, text= text, sender= sender)
         session.add(message)
-        await session.commit()
         logger.info(f'message {message.id} added to ticket {ticket.id}')
+        await session.commit()
         
 async def get_operator(telegram_id : int) -> OperatorsORM | None:
     async with session_factory() as session:

@@ -12,6 +12,9 @@ async def send_message_with_id(text : str, sender : Sender, ticket_id : int | No
         if ticket is None:
             logger.warning(f'Нет тикета с таким айди {ticket_id}')
             return 'Такого айди тикета не существует!'
+        if ticket.operator_id != id:
+            logger.warning(f'Тикет уже взял оператор {ticket.operator_id}')
+            return 'Тикет взял другой оператор!'
         await bot.send_message(chat_id= ticket.user_id, text= f'От ассистента поступил ответ: {text}', parse_mode=None)
         await insert_message(ticket_id=ticket_id, text=text, sender= Sender.user)
         logger.info(f'Сообщение от {sender.name} было отправлено в тикет {ticket_id}')

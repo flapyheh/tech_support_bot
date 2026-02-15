@@ -15,7 +15,7 @@ class UsersORM(Base):
     telegram_id : Mapped[int] = mapped_column(unique=True)
     username : Mapped[str]
     created_at : Mapped[create_at]
-    isOnTicket : Mapped[bool] = mapped_column(server_default=text('false'))
+    isOnTicket : Mapped[bool]
     
 class OperatorsORM(Base):
     __tablename__ = "operators"
