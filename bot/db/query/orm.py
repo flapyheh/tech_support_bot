@@ -103,3 +103,27 @@ async def get_all_opened_tickets() -> list[TicketsORM] | None:
         result = await session.execute(select(TicketsORM).where(TicketsORM.status == Statuses.opened))
         tickets = result.scalars().all()
         return(tickets)
+    
+async def change_ticket_status(ticket_id : int, state : bool) -> str:
+    async with session_factory() as session:
+        ticket = await session.get(TicketsORM, ticket_id)
+        if ticket is None:
+            return 'Такого тикета не существует!'
+        ticket.status = state
+        logger.info(f'Тикет {ticket_id} поменял состояние на {state}')
+        await session.commit()
+        
+async def get_user_by_ticket(ticket_id : int) -> UsersORM | None:
+    async with session_factory() as session:
+        ticket = await session.get(TicketsORM, ticket_id)
+        if ticket is None:
+            return None
+        user = await session.get(UsersORM, ticket.user_id)
+        return user
+
+async def get_all_msg_from_ticket(ticket_id : int) -> list[MessagesORM] | None:
+    async with session_factory() as session:
+        ticket = await session.get(TicketsORM, ticket_id)
+        if ticket is None:
+            return None
+        return ticket.messages
