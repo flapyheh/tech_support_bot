@@ -1,9 +1,8 @@
 from aiogram import Bot
 from aiogram.types import BotCommand
+from bot.bot_module import bot
 
-from bot.enums.enums import Sender
-
-async def set_main_menu(bot: Bot, sender: Sender):
+async def set_main_menu():
     main_menu_commands = [
         BotCommand(command='/ticket <ticket_id> <msg>',
                 description='Отправка сообщения в тикет под определенным id'),
